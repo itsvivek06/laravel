@@ -1,0 +1,47 @@
+@include('navbar')
+
+<form class="d-flex col-5" method="POST" action="search">
+    @csrf
+    <input class="form-control me-2" name="txtsearch" type="search" placeholder="Search" >
+    <button class="btn btn-outline-success" name="operation" value="search" type="submit">Search</button>
+</form>
+
+@isset($Data)
+<table class="table w-50">
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Image</th>
+        <th scope="col">Action</th>
+
+      </tr>
+    </thead>
+    <tbody>
+        @foreach($Data as $d)
+        <tr>
+            <th scope="row">{{$d->uid}}</th>
+            <td>{{$d->uname}}</td>
+            <td>{{$d->email}}</td>
+            <td><img src={{asset('uploads/'.$d->uphoto)}} height="100" width="100"></td>
+            <td>
+                <form action="updata" method="POST">
+                    @csrf
+                    <input type="hidden" name="hid" value={{$d->uid}}>
+                    <button>Update</button>
+                </form>
+                <a href="update/{{$d->uid}}" class="btn btn-secondary">Update</a>
+                <a href={{URL::To ('delete/'.$d->uid)}} class="btn btn-success">Delete</a>
+            </td>
+        </tr>
+        @endforeach
+    </tbody>
+  </table>
+
+  @endisset
+  
+  @isset($uData)
+  <input type="text" value={{$uData->uname}}>
+      
+  @endisset

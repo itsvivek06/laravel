@@ -1,0 +1,94 @@
+--web.php
+
+Route::view('reg','register');
+Route::post('regdata',[mycontroller::class,'regdata']);
+
+Route::get('welcome',[mycontroller::class,'disp']);
+
+---Controller
+
+function regdata(Request $req){
+        if($req->submit == 'reg'){
+            $uname=$req->txtname;
+            $pass=$req->txtpass;
+    
+            $req->validate([
+                'txtname'=>"required",
+                'txtcpass'=>"required|same:txtpass",
+                'photo'=>"required"
+            ],["txtname.required"=>"Field Is Empty",
+            "txtcpass.same"=>"Password Not Match",
+            "photo.required"=>"Please Select Photo"]);
+            
+            $filename=$req->file('photo')->getClientOriginalName();
+            $req->file('photo')->move('uploads',$filename);
+    
+           
+    
+            DB::table('tbl_user')->insert([
+                'uname'=>$uname,
+                'password'=>$pass,
+                'uphoto'=>$filename
+            ]);
+            return redirect('reg');
+
+        }
+    }
+
+    function disp(Request $req){
+        if($req ->operation=='search'){
+            $data=DB::table('tbl_user')->where('uname','like','%'.$req->txtsearch.'%')->get();
+        }
+        else{
+            $data=DB::table('tbl_user')->get();
+        }
+        
+        return view('welcome',['Data'=>$data]);
+    }
+
+
+-Insert Blade
+
+<form class="container mt-5 col-5" method="POST" enctype="multipart/form-data" action="regdata">
+    @csrf
+    <div class="mb-3">
+      <label for="exampleInputEmail1" class="form-label" >Name</label>
+      <input type="text" class="form-control" name="txtname">
+    </div>
+    
+    <div class="mb-3">
+      <label for="exampleInputEmail1" class="form-label" >Photo</label>
+      <input type="file" class="form-control" name="photo" >
+    </div>
+    
+    <button type="submit" name="submit" value="reg" class="btn btn-primary">Submit</button>
+  </form>
+
+  <div>
+    @if ($errors -> any())
+        @foreach($errors->all() as $e)
+            <span>{{$e}}</span>
+        @endforeach
+    @endif
+  </div>
+
+  ---DispBlade
+@if(isset($Data))
+  @foreach($Data as $d)
+        <tr>
+            <th scope="row">{{$d->uid}}</th>
+            <td>{{$d->uname}}</td>
+            <td>{{$d->email}}</td>
+            <td><img src={{asset('uploads/'.$d->uphoto)}} height="100" width="100"></td>
+            <td>
+                <form action="updata" method="POST">
+                    @csrf
+                    <input type="hidden" name="hid" value={{$d->uid}}>
+                    <button>Update</button>
+                </form>
+                <a href="update/{{$d->uid}}" class="btn btn-secondary">Update</a>
+                <a href={{URL::To ('delete/'.$d->uid)}} class="btn btn-success">Delete</a>
+            </td>
+        </tr>
+        @endforeach
+        @endif
